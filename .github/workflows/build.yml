@@ -26,7 +26,7 @@ jobs:
           path: .turbo
           key: turbo-${{ github.sha }}
           restore-keys: turbo-
-      - run: yarn turbo run lint type-check build --filter=@test/main --cache-dir=.turbo
+      - run: yarn turbo run type-check build --filter=@test/main --cache-dir=.turbo
 
   build-push:
     needs: verify

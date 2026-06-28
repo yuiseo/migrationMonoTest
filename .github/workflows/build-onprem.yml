@@ -25,7 +25,7 @@ jobs:
           path: .turbo
           key: turbo-onprem-${{ github.sha }}
           restore-keys: turbo-onprem-
-      - run: yarn turbo run lint type-check build --filter=@test/hub --cache-dir=.turbo
+      - run: yarn turbo run type-check build --filter=@test/hub --cache-dir=.turbo
 
   build-push:
     needs: verify

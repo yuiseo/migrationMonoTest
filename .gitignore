@@ -1,0 +1,11 @@
+node_modules
+.next
+.turbo
+out
+*.tar.gz
+apps/*/public/env-config.js
+
+# 환경변수 (실제 값이 담긴 파일은 커밋하지 않음)
+.env
+.env.local
+.env.*.local

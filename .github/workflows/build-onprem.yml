@@ -16,10 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: yarn }
+        with:
+          node-version: '22'
+          cache: yarn
       - run: yarn install --frozen-lockfile
       - uses: actions/cache@v4
-        with: { path: .turbo, key: turbo-onprem-${{ github.sha }}, restore-keys: turbo-onprem- }
+        with:
+          path: .turbo
+          key: turbo-onprem-${{ github.sha }}
+          restore-keys: turbo-onprem-
       - run: yarn turbo run lint type-check build --filter=@test/hub --cache-dir=.turbo
 
   build-push:

@@ -17,10 +17,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '22', cache: yarn }
+        with:
+          node-version: '22'
+          cache: yarn
       - run: yarn install --frozen-lockfile
       - uses: actions/cache@v4
-        with: { path: .turbo, key: turbo-${{ github.sha }}, restore-keys: turbo- }
+        with:
+          path: .turbo
+          key: turbo-${{ github.sha }}
+          restore-keys: turbo-
       - run: yarn turbo run lint type-check build --filter=@test/main --cache-dir=.turbo
 
   build-push:

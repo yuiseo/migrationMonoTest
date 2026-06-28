@@ -9,3 +9,4 @@ apps/*/public/env-config.js
 .env
 .env.local
 .env.*.local
+deploy/onprem/.env

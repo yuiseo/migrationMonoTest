@@ -1,0 +1,27 @@
+{
+  "name": "@test/main",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^15",
+    "react": "^18",
+    "react-dom": "^18",
+    "@test/ui": "*",
+    "@test/shared": "*",
+    "@test/api-client": "*",
+    "@test/cloud-feature": "*",
+    "@test/hub-feature": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "typescript": "^5.5"
+  }
+}

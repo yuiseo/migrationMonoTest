@@ -1,0 +1,53 @@
+name: build-cloud
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+env:
+  NODE_VERSION: '22'
+  REGISTRY: ghcr.io
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: yarn }
+      - run: yarn install --frozen-lockfile
+      - uses: actions/cache@v4
+        with: { path: .turbo, key: turbo-${{ github.sha }}, restore-keys: turbo- }
+      - run: yarn turbo run lint type-check build --filter=@test/main --cache-dir=.turbo
+
+  build-push:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then V="${GITHUB_REF#refs/tags/}";
+          else V="edge-${GITHUB_SHA::7}"; fi
+          echo "version=${V}" >> "$GITHUB_OUTPUT"
+          echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          build-args: APP=main
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.repo }}/main:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ steps.meta.outputs.repo }}/main:latest
+          cache-from: type=gha,scope=main
+          cache-to: type=gha,mode=max,scope=main

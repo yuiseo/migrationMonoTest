@@ -1,0 +1,22 @@
+{
+  "name": "@test/cloud-feature",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./pages/*": "./src/pages/*.tsx"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@test/ui": "*",
+    "@test/shared": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "next": "^15",
+    "react": "^18",
+    "typescript": "^5.5"
+  }
+}

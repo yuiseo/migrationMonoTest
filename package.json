@@ -1,0 +1,14 @@
+{
+  "name": "test-web",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "packageManager": "yarn@1.22.22",
+  "engines": { "node": ">=16.0.0" },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check"
+  },
+  "devDependencies": { "turbo": "^2.0.0", "typescript": "^5.5.0" }
+}

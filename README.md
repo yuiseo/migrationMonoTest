@@ -107,8 +107,11 @@ export { default, getServerSideProps } from '@test/hub-feature/pages/index';
 ### 3. 이미지 — 셸별로 빌드
 단일 `Dockerfile`에서 `--build-arg APP=main|hub`으로 두 이미지를 산출한다. `turbo prune`으로 해당 앱의 의존성만 잘라 standalone 빌드한다.
 
-### 4. 런타임 config 주입
+### 4. 런타임 config 주입 (Docker 전용)
 
+`NEXT_PUBLIC_*`는 빌드 타임에 인라인되어 런타임에 변경 불가능하다. `getEnv()`가 이 한계를 우회한다.
+
+**Docker 컨테이너 (스테이징/프로덕션/온프렘):**
 ```
 컨테이너 시작
      │
@@ -117,19 +120,27 @@ entrypoint.sh
  환경변수 수신 (API_BASE_URL, ENABLE_HUB 등)
      │
      ▼
-env-config.js 생성
+env-config.js 생성 (public/ 에 동적 생성)
  window.__ENV__ = { API_BASE_URL: "...", ... }
      │
      ▼
 _document.tsx <script src="/env-config.js">
      │
      ▼
-getEnv("KEY")
- 서버: process.env.KEY
- 클라이언트: window.__ENV__.KEY
+getEnv("KEY")  →  window.__ENV__.KEY (클라이언트)
+                   process.env.KEY   (서버)
 ```
 
-`NEXT_PUBLIC_*`는 빌드 타임에 인라인되어 런타임에 변경 불가능하다. `getEnv()`가 이 한계를 우회한다.
+**로컬 개발 (yarn dev):**
+```
+.env 파일
+     │
+     ├─ 서버: process.env.KEY  (Next.js가 .env 로드)
+     └─ 클라이언트: DEV_FALLBACK (env-config.dev.js 정적 파일)
+                    → window.__ENV__ 없으면 하드코딩 값 사용
+```
+
+> 로컬 dev에서는 런타임 주입이 동작하지 않는다. `.env` + DEV_FALLBACK으로 대체된다. 런타임 주입은 Docker로 띄울 때만 동작한다.
 
 ---
 
@@ -141,24 +152,27 @@ getEnv("KEY")
 
 ## 빌드 & CI
 
-```
-build.yml (main 브랜치 push)          build-onprem.yml (릴리스 태그 push)
-─────────────────────────────         ──────────────────────────────────────
-  verify                                verify
-  type-check + build (@test/main)       type-check + build (@test/hub)
-       │                                     │
-       ▼                                     ▼
-  build-push                            build-push
-  test/main 이미지 → GHCR               test/hub 이미지 → GHCR
-                                             │
-                                             ▼
-                                        package-onprem
-                                        이미지 tarball 아티팩트 산출
-                                        (폐쇄망: docker load로 적재)
-```
+cloud와 onprem 워크플로우를 **분리**한다. 트리거·포함 패키지·산출물이 서로 다르기 때문에 하나의 워크플로우로 합치면 온프렘 이미지에도 cloud 코드가 들어가거나, 모든 push마다 불필요한 hub 빌드가 돌아가게 된다.
 
-- cloud와 onprem 워크플로우를 **분리** — 트리거·산출물·의존 패키지가 다르기 때문
-- 온프렘용 tarball: 폐쇄망 환경에서 `docker load`로 적재 가능
+```
+build.yml                              build-onprem.yml
+트리거: push → main, workflow_dispatch  트리거: push → v*.*.* 태그, workflow_dispatch
+───────────────────────────────────    ──────────────────────────────────────────────
+포함 패키지: @test/main                 포함 패키지: @test/hub
+(cloud-feature + hub-feature)          (hub-feature만 · cloud 코드 없음)
+
+  verify                                 verify
+  type-check + build                     type-check + build
+       │                                      │
+       ▼                                      ▼
+  build-push                             build-push
+  test/main 이미지 → GHCR                test/hub 이미지 → GHCR
+                                              │
+                                              ▼
+                                         package-onprem
+                                         hub-{version}.tar.gz 아티팩트
+                                         (폐쇄망: docker load로 적재)
+```
 
 ---
 

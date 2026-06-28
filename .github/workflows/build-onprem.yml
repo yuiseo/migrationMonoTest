@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: yarn
       - run: yarn install --frozen-lockfile
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: .turbo
           key: turbo-onprem-${{ github.sha }}
@@ -71,7 +71,7 @@ jobs:
           docker pull "$IMG"
           docker save "$IMG" | gzip > "hub-${V}.tar.gz"
           echo "VERSION=${V}" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: hub-onprem-${{ env.VERSION }}
           path: hub-*.tar.gz
